@@ -1,0 +1,66 @@
+version: "3"
+
+services:
+    hello:
+        build: service_hello/
+        ports:
+            -   "3333"
+        depends_on:
+            -   consul
+        networks:
+            envoymesh:
+                aliases:
+                    -   hello
+        restart: always
+    where:
+        build: service_where/
+        ports:
+            -   "3333"
+        depends_on:
+            -   consul
+        restart: always
+        networks:
+            envoymesh:
+                aliases:
+                    -   where
+    who:
+        build: service_who/
+        ports:
+            -   "3333"
+        depends_on:
+            -   consul
+        restart: always
+        networks:
+            envoymesh:
+                aliases:
+                    -   who
+    envoy:
+        build:
+            context: envoy/
+        volumes:
+            -   ./envoy/config/:/etc/envoy/
+            -   ./envoy/hot-restart.py:/usr/local/bin/hot-restart.py
+            -   ./envoy/start_envoy.sh:/usr/local/bin/start_envoy.sh
+            -   ./envoy/logs:/var/log/envoy
+        command: /usr/local/bin/hot-restart.py /usr/local/bin/start_envoy.sh
+        # -c /etc/envoy/front-envoy.yaml --service-cluster front-proxy
+        ports:
+            -   10080:80
+            -   10081:8001
+        networks:
+            envoymesh:
+                aliases:
+                    -   envoy
+    consul:
+        image: consul
+        ports:
+            -   "8500:8500"
+        networks:
+            envoymesh:
+                aliases:
+                    -   consul
+    
+
+networks:
+    envoymesh:
+        
