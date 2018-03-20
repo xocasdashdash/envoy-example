@@ -1,6 +1,18 @@
 version: "3"
 
 services:
+    mozart:
+        build: service_orchestra/
+        ports:
+            -   "3333:3333"
+        environment:
+            PROXY_URL: envoy
+        depends_on:
+            -   consul
+        networks: 
+            envoymesh:
+                aliases:
+                    -   mozart
     hello:
         build: service_hello/
         ports:

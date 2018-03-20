@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/hashicorp/consul/api"
@@ -17,39 +20,35 @@ import (
 )
 
 const version = 0
-const ServiceName = "who_service"
+const ServiceName = "orchestra_service"
 
-type Person struct {
-	Name       string
-	Occupation string
-	Age        string
-}
-
-var people []Person
+var numberOfReqs uint64
+var totalRequests uint64
+var proxyName string
 
 func init() {
-	people = []Person{
-		Person{
-			Name:       "Napoleon",
-			Occupation: "Not Russia",
-			Age:        "n.d.",
-		},
-		Person{
-			Name:       "Washington",
-			Occupation: "Freedom Fighter",
-			Age:        "42",
-		}, Person{
-			Name:       "San Martín",
-			Occupation: "Libertador",
-			Age:        "60",
-		}, Person{
-			Name:       "Horatio Nelson",
-			Occupation: "Admiral.",
-			Age:        "35",
-		},
-	}
+	numberOfReqs = uint64(rand.Int63n(200) + 100)
+	totalRequests = 0
+	proxyName = os.Getenv("PROXY_URL")
 }
-func (p Person) Render(w http.ResponseWriter, r *http.Request) error {
+
+var ReqIDHeader string = "X-Request-Id"
+var serviceClient = &http.Client{Timeout: 10 * time.Second}
+
+func getJson(service string, path string, headers http.Header, target interface{}) error {
+	urlString := fmt.Sprintf("http://%s/%s/%s", proxyName, service, path)
+	log.Printf("Sending request to url:%s", urlString)
+	req, err := http.NewRequest("GET", urlString, nil)
+	if rid := headers.Get(ReqIDHeader); rid != "" {
+		req.Header.Add(ReqIDHeader, rid)
+	}
+	resp, err := serviceClient.Do(req)
+	if err != nil {
+		return err
+	}
+	buff, _ := ioutil.ReadAll(resp.Body)
+	log.Printf("Message received: %s. Status: %s", string(buff), resp.Status)
+	defer resp.Body.Close()
 
 	return nil
 }
@@ -65,26 +64,24 @@ func main() {
 		log.Fatal(err)
 	}
 	r.Route(fmt.Sprintf("/v%d/", version), func(r chi.Router) {
-		r.Get("/who", func(w http.ResponseWriter, r *http.Request) {
-			dice := rand.Intn(len(people))
-			p := people[dice]
-			if err := render.Render(w, r, p); err != nil {
-				render.Render(w, r, ErrRender(err))
-				return
-			}
+		r.Get("/orchestra", func(w http.ResponseWriter, r *http.Request) {
+			totalRequests = atomic.AddUint64(&totalRequests, 1)
+			getJson("where", "/", r.Header, nil)
+			getJson("who", "/", r.Header, nil)
+
 		})
 
 	})
 	r.HandleFunc("/_healthz", func(w http.ResponseWriter, r *http.Request) {
-		dice := rand.Intn(5) + 1
 		w.Header().Add("x-envoy-upstream-healthchecked-cluster", ServiceName)
-
-		if dice == 1 {
+		name, _ := os.Hostname()
+		w.Header().Add("x-upstream-server", name)
+		if totalRequests >= numberOfReqs {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("ko"))
 		} else {
-			w.Write([]byte("ok"))
+			w.WriteHeader(http.StatusOK)
 		}
+
 	})
 
 	if err := registerService("hello", 3333); err != nil {
