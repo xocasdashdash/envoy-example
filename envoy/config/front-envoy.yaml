@@ -56,7 +56,7 @@ static_resources:
             #      function envoy_on_response(response_handle)
             #        body_size = response_handle:body():length()
             #        response_handle:headers():add("response-body-size", tostring(body_size))
-            #      end
+            #      end  
             - name: envoy.router
               config: {}
   clusters:

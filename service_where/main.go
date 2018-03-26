@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"net"
 	"net/http"
@@ -118,21 +119,39 @@ func main() {
 		}
 	})
 
-	if err := registerService("where", 3333); err != nil {
+	if err := registerService("where", 3333, 5); err != nil {
 		log.Fatalf("Error registering service :(. Error: %+v", err)
 	}
 	http.Serve(l, r)
 
 }
-func registerService(service string, port int) error {
+func registerService(service string, port int, retries int) error {
 	config := api.DefaultConfig()
-	config.Address = "consul:8500"
-	client, err := api.NewClient(config)
-	srvRegistrator := client.Agent()
+	retriesLeft := retries
+	var srvRegistrator *api.Agent
+	for {
+		log.Printf("Trying to connect to consul...")
+		config.Address = "consul:8500"
+		client, _ := api.NewClient(config)
+		srvRegistrator = client.Agent()
+		//Chec connection to consul
+		_, err := srvRegistrator.Self()
 
-	if err != nil {
-		fmt.Printf("Encountered error connecting to consul on %s => %s\n", "consul", err)
-		return err
+		if err != nil && retriesLeft <= 0 {
+			log.Printf("Encountered error connecting to consul on %s => %s\n", "consul", err)
+			return err
+		} else if err != nil {
+			waitTime := time.Duration(math.Exp2(float64(retries-retriesLeft))) * time.Second
+			log.Printf("Encountered error connecting to consul on %s => %s\n", "consul", err)
+			log.Printf("Waiting %.0f secs until next connection attempt", waitTime.Seconds())
+			log.Printf("Retries left: %d", retriesLeft)
+			retriesLeft = retriesLeft - 1
+			time.Sleep(waitTime)
+		} else {
+			log.Printf("Connection successful!")
+			break
+		}
+
 	}
 	rand.Seed(time.Now().UnixNano())
 	sid := rand.Intn(65534)

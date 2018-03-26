@@ -17,8 +17,6 @@ services:
         build: service_hello/
         ports:
             -   "3333"
-        depends_on:
-            -   consul
         networks:
             envoymesh:
                 aliases:
@@ -28,8 +26,6 @@ services:
         build: service_where/
         ports:
             -   "3333"
-        depends_on:
-            -   consul
         restart: always
         networks:
             envoymesh:
@@ -39,8 +35,6 @@ services:
         build: service_who/
         ports:
             -   "3333"
-        depends_on:
-            -   consul
         restart: always
         networks:
             envoymesh:
