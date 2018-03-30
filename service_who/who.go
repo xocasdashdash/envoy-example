@@ -72,13 +72,13 @@ func main() {
 
 	})
 
-	r.HandleFunc("/_healthz", healthz.HealthCheck("hello", 5))
+	r.HandleFunc("/_healthz", healthz.HealthCheck(ServiceName, 5))
 
 	sr := service_registry.ServiceRegistry{
 		Location: "consul:8500",
 		Retries:  5,
 	}
-	if err := sr.Register("hello", local_ip.GetLocalIP(), 3333); err != nil {
+	if err := sr.Register(ServiceName, local_ip.GetLocalIP(), 3333); err != nil {
 		log.Fatalf("Error registering service :(. Error: %+v", err)
 	}
 

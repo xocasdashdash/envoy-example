@@ -94,7 +94,7 @@ func main() {
 			Retries:  5,
 		}
 
-		if err := sr.Register("where", local_ip.GetLocalIP(), 3333); err != nil {
+		if err := sr.Register(ServiceName, local_ip.GetLocalIP(), 3333); err != nil {
 			log.Fatalf("Error registering service :(. Error: %+v", err)
 		}
 	}()
