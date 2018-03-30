@@ -46,9 +46,19 @@
   packages = ["."]
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/xocasdashdash/envoy-example"
+  packages = [
+    "common/healthz",
+    "common/request_id",
+    "common/service_registry"
+  ]
+  revision = "818688feb2c4375698229360f99274e27919c23c"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d33cdfe01149ef9945a53016bbbc8dad35f92addea211e6a75343368c89761cf"
+  inputs-digest = "e3e3ed7f618c6a5be4b7760f572e64046893d4e2d04f4b064fd0b01351e63117"
   solver-name = "gps-cdcl"
   solver-version = 1
