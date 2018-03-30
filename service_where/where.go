@@ -8,10 +8,10 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/xocasdashdash/envoy-test/common/request_id"
-	"github.com/xocasdashdash/envoy-test/common/service_registry"
+	"github.com/xocasdashdash/envoy-example/common/request_id"
+	"github.com/xocasdashdash/envoy-example/common/service_registry"
 
-	"github.com/xocasdashdash/envoy-test/common/healthz"
+	"github.com/xocasdashdash/envoy-example/common/healthz"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"

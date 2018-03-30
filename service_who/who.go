@@ -11,10 +11,10 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/xocasdashdash/envoy-test/common/healthz"
-	"github.com/xocasdashdash/envoy-test/common/local_ip"
-	"github.com/xocasdashdash/envoy-test/common/request_id"
-	"github.com/xocasdashdash/envoy-test/common/service_registry"
+	"github.com/xocasdashdash/envoy-example/common/healthz"
+	"github.com/xocasdashdash/envoy-example/common/local_ip"
+	"github.com/xocasdashdash/envoy-example/common/request_id"
+	"github.com/xocasdashdash/envoy-example/common/service_registry"
 )
 
 const version = 0
