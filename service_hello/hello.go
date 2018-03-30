@@ -2,18 +2,19 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 
 	"github.com/xocasdashdash/envoy-example/common/healthz"
+	"github.com/xocasdashdash/envoy-example/common/local_ip"
 	"github.com/xocasdashdash/envoy-example/common/request_id"
 	"github.com/xocasdashdash/envoy-example/common/service_registry"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/render"
 )
 
 func extractName(r *http.Request) string {
@@ -57,7 +58,9 @@ func main() {
 
 			closeChan <- true
 			if err := json.NewEncoder(w).Encode(greet); err != nil {
-				json.NewEncoder(w).Encode(struct{
+				json.NewEncoder(w).Encode(struct {
+					Error error
+				}{
 					Error: err,
 				})
 				w.WriteHeader(http.StatusInternalServerError)
@@ -73,7 +76,9 @@ func main() {
 			}
 
 			if err := json.NewEncoder(w).Encode(greet); err != nil {
-				json.NewEncoder(w).Encode(struct{
+				json.NewEncoder(w).Encode(struct {
+					Error error
+				}{
 					Error: err,
 				})
 				w.WriteHeader(http.StatusInternalServerError)
@@ -89,7 +94,7 @@ func main() {
 			Retries:  5,
 		}
 
-		if err := sr.Register("where", local_ip.GetLocalIp(), 3333); err != nil {
+		if err := sr.Register("where", local_ip.GetLocalIP(), 3333); err != nil {
 			log.Fatalf("Error registering service :(. Error: %+v", err)
 		}
 	}()

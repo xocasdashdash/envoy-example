@@ -8,15 +8,15 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"sync/atomic"
 	"time"
 
-	"github.com/hashicorp/consul/api"
+	"github.com/xocasdashdash/envoy-example/common/local_ip"
+	"github.com/xocasdashdash/envoy-example/common/request_id"
+	"github.com/xocasdashdash/envoy-example/common/service_registry"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/render"
 )
 
 const version = 0
@@ -54,7 +54,7 @@ func getJson(service string, path string, headers http.Header, target interface{
 }
 func main() {
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
+	r.Use(request_id.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.StripSlashes)
@@ -83,74 +83,14 @@ func main() {
 		}
 
 	})
+	sr := service_registry.ServiceRegistry{
+		Location: "consul:8500",
+		Retries:  5,
+	}
 
-	if err := registerService("hello", 3333); err != nil {
+	if err := sr.Register("orchestra", local_ip.GetLocalIP(), 3333); err != nil {
 		log.Fatalf("Error registering service :(. Error: %+v", err)
 	}
 	http.Serve(l, r)
 
-}
-func registerService(service string, port int) error {
-	config := api.DefaultConfig()
-	config.Address = "consul:8500"
-	client, err := api.NewClient(config)
-	srvRegistrator := client.Agent()
-
-	if err != nil {
-		fmt.Printf("Encountered error connecting to consul on %s => %s\n", "consul", err)
-		return err
-	}
-	rand.Seed(time.Now().UnixNano())
-	sid := rand.Intn(65534)
-
-	serviceID := service + "-" + strconv.Itoa(sid)
-
-	consulService := api.AgentServiceRegistration{
-		ID:      serviceID,
-		Name:    service,
-		Tags:    []string{time.Now().Format("Jan 02 15:04:05.000 MST")},
-		Port:    port,
-		Address: GetLocalIP(),
-		Checks:  api.AgentServiceChecks{},
-	}
-
-	return srvRegistrator.ServiceRegister(&consulService)
-
-}
-func GetLocalIP() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ""
-	}
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	return ""
-}
-func ErrRender(err error) render.Renderer {
-	return &ErrResponse{
-		Err:            err,
-		HTTPStatusCode: 422,
-		StatusText:     "Error rendering response.",
-		ErrorText:      err.Error(),
-	}
-}
-
-func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.HTTPStatusCode)
-	return nil
-}
-
-type ErrResponse struct {
-	Err            error `json:"-"` // low-level runtime error
-	HTTPStatusCode int   `json:"-"` // http response status code
-
-	StatusText string `json:"status"`          // user-level status message
-	AppCode    int64  `json:"code,omitempty"`  // application-specific error code
-	ErrorText  string `json:"error,omitempty"` // application-level error message, for debugging
 }
