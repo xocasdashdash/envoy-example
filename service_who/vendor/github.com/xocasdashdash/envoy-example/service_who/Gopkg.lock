@@ -49,7 +49,7 @@
     "common/request_id",
     "common/service_registry"
   ]
-  revision = "818688feb2c4375698229360f99274e27919c23c"
+  revision = "2c0e22f74f6c7fd4d8cf0da0472013b72331fc5e"
 
 [solve-meta]
   analyzer-name = "dep"

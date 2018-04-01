@@ -20,7 +20,7 @@ func RequestID(next http.Handler) http.Handler {
 		rid := r.Header.Get("X-Request-Id")
 		if rid == "" {
 			myid := atomic.AddUint64(&reqid, 1)
-			rid = fmt.Sprintf("%d-%d-%d-%d", myid)
+			rid = fmt.Sprintf("%d", myid)
 		}
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, middleware.RequestIDKey, fmt.Sprintf("%s", rid))

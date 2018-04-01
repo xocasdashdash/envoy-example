@@ -11,12 +11,6 @@
   version = "v3.3.2"
 
 [[projects]]
-  name = "github.com/go-chi/render"
-  packages = ["."]
-  revision = "9f855fadd4b8cde7773f9ef51f6b2705af239519"
-  version = "v1.0.0"
-
-[[projects]]
   name = "github.com/hashicorp/consul"
   packages = ["api"]
   revision = "9a494b5fb9c86180a5702e29c485df1507a47198"
@@ -46,9 +40,19 @@
   packages = ["."]
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/xocasdashdash/envoy-example"
+  packages = [
+    "common/local_ip",
+    "common/request_id",
+    "common/service_registry"
+  ]
+  revision = "2c0e22f74f6c7fd4d8cf0da0472013b72331fc5e"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d33cdfe01149ef9945a53016bbbc8dad35f92addea211e6a75343368c89761cf"
+  inputs-digest = "309b7c4bfb416d4253ab87381ddddc9fb7b60d76062f5f33e9ab6a72c7c4bdc5"
   solver-name = "gps-cdcl"
   solver-version = 1

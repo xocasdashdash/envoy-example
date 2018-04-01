@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/xocasdashdash/envoy-example/common/local_ip"
 	"github.com/xocasdashdash/envoy-example/common/request_id"
 	"github.com/xocasdashdash/envoy-example/common/service_registry"
 
@@ -15,7 +16,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/render"
 )
 
 const version = 0
@@ -70,7 +70,9 @@ func main() {
 				w.WriteHeader(status)
 
 				if err := json.NewEncoder(w).Encode(place); err != nil {
-					json.NewEncoder(w).Encode(struct{
+					json.NewEncoder(w).Encode(struct {
+						Error error
+					}{
 						Error: err,
 					})
 					w.WriteHeader(http.StatusInternalServerError)
